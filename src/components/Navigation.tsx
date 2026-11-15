@@ -2,17 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Activity, CloudSun, Ellipsis, Gauge, Moon, Plane, type LucideIcon } from 'lucide-react';
+
+type NavItem = { href: string; label: string; icon: LucideIcon };
+
+const mainNavItems: NavItem[] = [
+    { href: '/dashboard', label: 'Dashboard', icon: Gauge },
+    { href: '/sleep-schedule', label: 'Sleep', icon: Moon },
+    { href: '/circadian-rhythm', label: 'Rhythm', icon: Activity },
+    { href: '/weather-health', label: 'Weather', icon: CloudSun },
+    { href: '/more', label: 'More', icon: Ellipsis },
+];
 
 export default function Navigation() {
     const pathname = usePathname();
-
-    const mainNavItems = [
-        { href: '/dashboard', icon: '📊', label: 'Dashboard', color: 'text-blue-600' },
-        { href: '/sleep-schedule', icon: '😴', label: 'Sleep', color: 'text-purple-600' },
-        { href: '/circadian-rhythm', icon: '🌙', label: 'Rhythm', color: 'text-indigo-600' },
-        { href: '/weather-health', icon: '🌍', label: 'Weather', color: 'text-cyan-600' },
-        { href: '/more', icon: '⋯', label: 'More', color: 'text-gray-600' },
-    ];
 
     const isActive = (href: string) => {
         if (href === '/') return pathname === '/';
@@ -21,71 +24,41 @@ export default function Navigation() {
 
     return (
         <>
-            {/* Mobile Header */}
-            <header className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg safe-area-top">
-                <div className="max-w-md mx-auto">
-                    <div className="flex items-center justify-between px-6 py-4">
-                        <Link href="/" className="flex items-center space-x-2 py-1">
-                            <span className="text-3xl">✈️</span>
-                            <div className="flex flex-col">
-                                <span className="text-xl font-bold tracking-tight">PilotCare</span>
-                                <span className="text-xs text-blue-100 -mt-1">Health & Wellness</span>
-                            </div>
-                        </Link>
-                    </div>
+            {/* Header: the product name, nothing else competing with the page below */}
+            <header className="fixed left-0 right-0 top-0 z-40">
+                <div className="mx-auto flex h-[57px] max-w-md items-center justify-between border-x border-b border-line bg-surface px-5">
+                    <Link href="/" className="flex items-center gap-2.5 text-ink" aria-label="PilotCare home">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink text-white">
+                            <Plane size={17} strokeWidth={2} aria-hidden="true" />
+                        </span>
+                        <span className="font-display text-[19px] font-semibold leading-none tracking-[0.01em]">PilotCare</span>
+                    </Link>
+                    <span className="text-[13px] text-ink-faint">Health and duty</span>
                 </div>
             </header>
 
-            {/* Bottom Navigation Bar - Enhanced Mobile Design */}
-            <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-gray-100 shadow-2xl safe-area-bottom">
-                <div className="max-w-md mx-auto">
-                    <div className="flex items-center justify-around px-1 py-2">
-                        {mainNavItems.map((item) => {
-                            const active = isActive(item.href);
+            {/* Bottom tabs */}
+            <nav className="fixed bottom-0 left-0 right-0 z-50" aria-label="Main">
+                <div className="mx-auto max-w-md border-x border-t border-line bg-surface pb-[env(safe-area-inset-bottom)]">
+                    <ul className="grid grid-cols-5">
+                        {mainNavItems.map(({ href, label, icon: Icon }) => {
+                            const active = isActive(href);
                             return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className={`relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[68px] transition-all duration-200 ${active
-                                            ? 'scale-105'
-                                            : 'hover:scale-105 active:scale-95'
-                                        }`}
-                                >
-                                    {/* Active background glow */}
-                                    {active && (
-                                        <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-transparent rounded-2xl"></div>
-                                    )}
-
-                                    {/* Icon container */}
-                                    <div className={`relative mb-1 transition-all duration-200 ${active ? 'scale-110' : ''
-                                        }`}>
-                                        <span className={`text-2xl block ${active ? item.color : 'grayscale opacity-60'
-                                            }`}>
-                                            {item.icon}
-                                        </span>
-
-                                        {/* Active indicator dot */}
-                                        {active && (
-                                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                                        )}
-                                    </div>
-
-                                    {/* Label */}
-                                    <span className={`text-[10px] font-bold transition-all duration-200 ${active
-                                            ? 'text-blue-600 scale-105'
-                                            : 'text-gray-500'
-                                        }`}>
-                                        {item.label}
-                                    </span>
-
-                                    {/* Active bar indicator */}
-                                    {active && (
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 rounded-full shadow-lg"></div>
-                                    )}
-                                </Link>
+                                <li key={href}>
+                                    <Link
+                                        href={href}
+                                        aria-current={active ? 'page' : undefined}
+                                        className={`relative flex flex-col items-center gap-1 px-1 pb-2.5 pt-3 text-[12px] font-medium ${active ? 'text-ink' : 'text-ink-faint hover:text-ink-soft'}`}
+                                    >
+                                        {/* Magenta marks where you are, as the active route does on a flight display */}
+                                        {active ? <span className="absolute left-1/2 top-0 h-[3px] w-9 -translate-x-1/2 rounded-b bg-plan" aria-hidden="true" /> : null}
+                                        <Icon size={21} strokeWidth={active ? 2 : 1.75} aria-hidden="true" />
+                                        {label}
+                                    </Link>
+                                </li>
                             );
                         })}
-                    </div>
+                    </ul>
                 </div>
             </nav>
         </>

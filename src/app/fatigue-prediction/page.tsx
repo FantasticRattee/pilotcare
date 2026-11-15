@@ -1,280 +1,210 @@
 'use client';
 
-
 import { useState } from 'react';
+import { BedDouble, CircleCheck, Coffee, Footprints, Lightbulb, LoaderCircle, RefreshCw, Salad, TriangleAlert, type LucideIcon } from 'lucide-react';
+import { Button, Meter, Notice, PageHeader, Panel, Row, RowList, Section, Status, type Tone } from '@/components/ui';
+
+type Recommendation = { icon: LucideIcon; title: string; description: string; priority: string };
 
 export default function FatiguePrediction() {
-    const [analyzing, setAnalyzing] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
-    const fatigueAnalysis = {
-        overallRisk: 'Medium',
-        riskScore: 65,
-        factors: [
-            { name: 'Sleep Quality', value: 72, status: 'warning', impact: 'Medium' },
-            { name: 'Flight Schedule Density', value: 68, status: 'warning', impact: 'Medium' },
-            { name: 'Recovery Time', value: 58, status: 'danger', impact: 'High' },
-            { name: 'Circadian Rhythm Alignment', value: 75, status: 'good', impact: 'Low' },
-            { name: 'Recent Rest Periods', value: 62, status: 'warning', impact: 'Medium' },
-        ],
-    };
+  const fatigueAnalysis = {
+    overallRisk: 'Medium',
+    riskScore: 65,
+    factors: [
+      { name: 'Sleep quality', value: 72, status: 'warning', impact: 'Medium' },
+      { name: 'Flight schedule density', value: 68, status: 'warning', impact: 'Medium' },
+      { name: 'Recovery time', value: 58, status: 'danger', impact: 'High' },
+      { name: 'Circadian rhythm alignment', value: 75, status: 'good', impact: 'Low' },
+      { name: 'Recent rest periods', value: 62, status: 'warning', impact: 'Medium' },
+    ],
+  };
 
-    const predictions = [
-        {
-            date: '2025-10-19',
-            flight: 'BA124 JFK-LHR',
-            predictedFatigue: 68,
-            riskLevel: 'Medium',
-            confidence: 87,
-            recommendation: 'Schedule adequate rest before flight',
-        },
-        {
-            date: '2025-10-21',
-            flight: 'BA456 LHR-DXB',
-            predictedFatigue: 72,
-            riskLevel: 'Medium-High',
-            confidence: 82,
-            recommendation: 'Consider extended rest period',
-        },
-        {
-            date: '2025-10-23',
-            flight: 'BA789 DXB-SYD',
-            predictedFatigue: 78,
-            riskLevel: 'High',
-            confidence: 79,
-            recommendation: 'Strongly recommend additional rest',
-        },
-    ];
+  const predictions = [
+    {
+      date: '2025-10-19',
+      flight: 'BA124 JFK-LHR',
+      predictedFatigue: 68,
+      riskLevel: 'Medium',
+      confidence: 87,
+      recommendation: 'Schedule adequate rest before flight',
+    },
+    {
+      date: '2025-10-21',
+      flight: 'BA456 LHR-DXB',
+      predictedFatigue: 72,
+      riskLevel: 'Medium-High',
+      confidence: 82,
+      recommendation: 'Consider extended rest period',
+    },
+    {
+      date: '2025-10-23',
+      flight: 'BA789 DXB-SYD',
+      predictedFatigue: 78,
+      riskLevel: 'High',
+      confidence: 79,
+      recommendation: 'Strongly recommend additional rest',
+    },
+  ];
 
-    const recommendations = [
-        {
-            icon: '😴',
-            title: 'Optimize Sleep Schedule',
-            description: 'Get 8-9 hours of quality sleep before your next flight. Consider going to bed at 22:00.',
-            priority: 'High',
-        },
-        {
-            icon: '🏃',
-            title: 'Light Exercise',
-            description: 'Engage in 20-30 minutes of light exercise to improve recovery and reduce fatigue.',
-            priority: 'Medium',
-        },
-        {
-            icon: '🥗',
-            title: 'Nutrition & Hydration',
-            description: 'Maintain proper hydration and avoid heavy meals 3 hours before duty.',
-            priority: 'Medium',
-        },
-        {
-            icon: '☕',
-            title: 'Strategic Caffeine Use',
-            description: 'Limit caffeine intake to morning hours. Avoid 6 hours before planned sleep.',
-            priority: 'Low',
-        },
-    ];
+  const recommendations: Recommendation[] = [
+    {
+      icon: BedDouble,
+      title: 'Optimize sleep schedule',
+      description: 'Get 8-9 hours of quality sleep before your next flight. Consider going to bed at 22:00.',
+      priority: 'High',
+    },
+    {
+      icon: Footprints,
+      title: 'Light exercise',
+      description: 'Engage in 20-30 minutes of light exercise to improve recovery and reduce fatigue.',
+      priority: 'Medium',
+    },
+    {
+      icon: Salad,
+      title: 'Nutrition and hydration',
+      description: 'Maintain proper hydration and avoid heavy meals 3 hours before duty.',
+      priority: 'Medium',
+    },
+    {
+      icon: Coffee,
+      title: 'Strategic caffeine use',
+      description: 'Limit caffeine intake to morning hours. Avoid 6 hours before planned sleep.',
+      priority: 'Low',
+    },
+  ];
 
-    const handleAnalyze = () => {
-        setAnalyzing(true);
-        setTimeout(() => {
-            setAnalyzing(false);
-        }, 2000);
-    };
+  const handleAnalyze = () => {
+    setAnalyzing(true);
+    setTimeout(() => {
+      setAnalyzing(false);
+    }, 2000);
+  };
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Fatigue Prediction</h1>
-                <p className="text-gray-600">
-                    User Story #12: AI-powered fatigue risk prediction based on schedule and sleep patterns
-                </p>
+  // Colour carries the status: red for high risk, amber for medium, green for low.
+  const riskTone = (level: string): Tone => (level === 'High' ? 'warning' : level.includes('Medium') ? 'caution' : 'ok');
+  const factorTone: Record<string, Tone> = { good: 'ok', warning: 'caution', danger: 'warning' };
+  // Only the high-priority advice is flagged; the rest stays neutral.
+  const priorityTone = (priority: string): Tone => (priority === 'High' ? 'caution' : 'neutral');
+
+  const overallTone = riskTone(fatigueAnalysis.overallRisk);
+
+  return (
+    <div>
+      <PageHeader title="AI fatigue prediction" lead="AI-powered fatigue risk prediction based on your schedule and sleep patterns" story={12} />
+
+      {/* The answer first: the overall risk, then the score behind it */}
+      <Section>
+        <Notice tone={overallTone} icon={overallTone === 'ok' ? CircleCheck : TriangleAlert} title={`Overall fatigue risk: ${fatigueAnalysis.overallRisk}`}>
+          Based on AI analysis of your data
+        </Notice>
+        <div className="mt-3">
+          <Panel>
+            <p className="text-[13px] text-ink-soft">Risk score</p>
+            <p className="tabular mt-1.5 font-display text-[44px] font-semibold leading-none text-ink">
+              {fatigueAnalysis.riskScore}
+              <span className="ml-1 text-[18px] font-medium text-ink-faint">/100</span>
+            </p>
+            <div className="mt-4">
+              <Meter value={fatigueAnalysis.riskScore} tone={overallTone} label="Risk level" valueLabel={fatigueAnalysis.overallRisk} />
             </div>
-
-            {/* Overall Risk Assessment */}
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-8 rounded-lg shadow-lg mb-8">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 className="text-3xl font-bold mb-2">Overall Fatigue Risk</h2>
-                        <p className="text-orange-100">Based on AI analysis of your data</p>
-                    </div>
-                    <button
-                        onClick={handleAnalyze}
-                        disabled={analyzing}
-                        className={`px-6 py-3 rounded-lg font-medium transition-all ${analyzing
-                            ? 'bg-white/30 cursor-not-allowed'
-                            : 'bg-white text-orange-600 hover:bg-orange-50'
-                            }`}
-                    >
-                        {analyzing ? (
-                            <span className="flex items-center">
-                                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Analyzing...
-                            </span>
-                        ) : (
-                            '🤖 Re-analyze'
-                        )}
-                    </button>
-                </div>
-
-                <div className="flex items-end space-x-6">
-                    <div className="flex-1">
-                        <div className="bg-white/20 rounded-full h-8 mb-2">
-                            <div
-                                className="bg-white h-8 rounded-full transition-all duration-500"
-                                style={{ width: `${fatigueAnalysis.riskScore}%` }}
-                            ></div>
-                        </div>
-                        <p className="text-sm text-orange-100">Risk Score: {fatigueAnalysis.riskScore}/100</p>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-5xl font-bold">{fatigueAnalysis.overallRisk}</div>
-                        <div className="text-sm text-orange-100">Risk Level</div>
-                    </div>
-                </div>
+            <div className="mt-4">
+              <Button variant="secondary" onClick={handleAnalyze} disabled={analyzing} icon={analyzing ? undefined : RefreshCw} full>
+                {analyzing ? (
+                  <>
+                    <LoaderCircle size={17} strokeWidth={2} className="animate-spin" aria-hidden="true" />
+                    Analyzing...
+                  </>
+                ) : (
+                  'Re-analyze'
+                )}
+              </Button>
             </div>
-
-            {/* Risk Factors Analysis */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">🔍 Risk Factors Analysis</h2>
-                <div className="space-y-4">
-                    {fatigueAnalysis.factors.map((factor, index) => (
-                        <div key={index} className="border-b border-gray-100 pb-4 last:border-0">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center space-x-3 flex-1">
-                                    <span className="font-medium text-gray-900">{factor.name}</span>
-                                    <span
-                                        className={`px-2 py-1 text-xs font-semibold rounded-full ${factor.status === 'good'
-                                            ? 'bg-green-100 text-green-800'
-                                            : factor.status === 'warning'
-                                                ? 'bg-yellow-100 text-yellow-800'
-                                                : 'bg-red-100 text-red-800'
-                                            }`}
-                                    >
-                                        {factor.impact} Impact
-                                    </span>
-                                </div>
-                                <span className="text-sm font-semibold text-gray-700">{factor.value}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className={`h-2 rounded-full ${factor.status === 'good'
-                                        ? 'bg-green-500'
-                                        : factor.status === 'warning'
-                                            ? 'bg-yellow-500'
-                                            : 'bg-red-500'
-                                        }`}
-                                    style={{ width: `${factor.value}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Upcoming Flight Predictions */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">📅 Upcoming Flight Predictions</h2>
-                <div className="space-y-4">
-                    {predictions.map((prediction, index) => (
-                        <div
-                            key={index}
-                            className={`p-4 rounded-lg border-l-4 ${prediction.riskLevel === 'High'
-                                ? 'bg-red-50 border-red-500'
-                                : prediction.riskLevel.includes('Medium')
-                                    ? 'bg-yellow-50 border-yellow-500'
-                                    : 'bg-green-50 border-green-500'
-                                }`}
-                        >
-                            <div className="flex items-start justify-between mb-2">
-                                <div className="flex-1">
-                                    <div className="flex items-center space-x-3 mb-1">
-                                        <h3 className="font-semibold text-gray-900">{prediction.flight}</h3>
-                                        <span
-                                            className={`px-2 py-1 text-xs font-semibold rounded-full ${prediction.riskLevel === 'High'
-                                                ? 'bg-red-200 text-red-900'
-                                                : prediction.riskLevel.includes('Medium')
-                                                    ? 'bg-yellow-200 text-yellow-900'
-                                                    : 'bg-green-200 text-green-900'
-                                                }`}
-                                        >
-                                            {prediction.riskLevel} Risk
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-600 mb-2">{prediction.date}</p>
-                                    <p className="text-sm font-medium text-gray-700">
-                                        💡 {prediction.recommendation}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-2xl font-bold text-gray-900">{prediction.predictedFatigue}</div>
-                                    <div className="text-xs text-gray-600">Fatigue Score</div>
-                                    <div className="text-xs text-gray-500 mt-1">{prediction.confidence}% confidence</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* AI Recommendations */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">💡 AI-Powered Recommendations</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {recommendations.map((rec, index) => (
-                        <div
-                            key={index}
-                            className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-                        >
-                            <div className="flex items-start space-x-3">
-                                <div className="text-3xl">{rec.icon}</div>
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h3 className="font-semibold text-gray-900">{rec.title}</h3>
-                                        <span
-                                            className={`px-2 py-1 text-xs font-semibold rounded-full ${rec.priority === 'High'
-                                                ? 'bg-red-100 text-red-800'
-                                                : rec.priority === 'Medium'
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-blue-100 text-blue-800'
-                                                }`}
-                                        >
-                                            {rec.priority}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-600">{rec.description}</p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* AI Model Information */}
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                <h3 className="font-semibold text-blue-900 mb-2 flex items-center">
-                    <span className="text-2xl mr-2">🤖</span>
-                    AI Model Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-800">
-                    <div>
-                        <p className="font-medium mb-1">Model Version</p>
-                        <p>FatiguePredict v2.1.0</p>
-                    </div>
-                    <div>
-                        <p className="font-medium mb-1">Training Data</p>
-                        <p>10,000+ pilot records</p>
-                    </div>
-                    <div>
-                        <p className="font-medium mb-1">Accuracy Rate</p>
-                        <p>89.3% prediction accuracy</p>
-                    </div>
-                </div>
-                <p className="text-sm text-blue-700 mt-4">
-                    Our AI analyzes your sleep patterns, duty schedule, recovery time, and circadian rhythm to provide
-                    personalized fatigue predictions. The model continuously learns and improves with more data.
-                </p>
-            </div>
+          </Panel>
         </div>
-    );
+      </Section>
+
+      <Section title="Risk factors analysis">
+        <RowList>
+          {fatigueAnalysis.factors.map((factor) => {
+            const tone = factorTone[factor.status] ?? 'neutral';
+            return (
+              <div key={factor.name} className="border-b border-line-soft py-3.5 last:border-b-0">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <p className="min-w-0 text-[15px] text-ink">{factor.name}</p>
+                  <Status tone={tone}>{factor.impact} impact</Status>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Meter value={factor.value} tone={tone} />
+                  </div>
+                  <span className="tabular w-10 shrink-0 text-right text-[14px] font-medium text-ink">{factor.value}%</span>
+                </div>
+              </div>
+            );
+          })}
+        </RowList>
+      </Section>
+
+      <Section title="Upcoming flight predictions">
+        <RowList>
+          {predictions.map((prediction) => (
+            <div key={`${prediction.date}-${prediction.flight}`} className="border-b border-line-soft py-3.5 last:border-b-0">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="tabular text-[15px] font-medium text-ink">{prediction.flight}</p>
+                  <p className="tabular text-[13px] text-ink-faint">{prediction.date}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="tabular font-display text-[26px] font-semibold leading-none text-ink">{prediction.predictedFatigue}</p>
+                  <p className="mt-1 text-[12.5px] text-ink-faint">Fatigue score</p>
+                </div>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between gap-3">
+                <Status tone={riskTone(prediction.riskLevel)}>{prediction.riskLevel} risk</Status>
+                <p className="tabular text-[13px] text-ink-faint">{prediction.confidence}% confidence</p>
+              </div>
+              <p className="mt-2.5 flex items-start gap-2 text-[14px] text-ink-soft">
+                <Lightbulb size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-ink-faint" aria-hidden="true" />
+                {prediction.recommendation}
+              </p>
+            </div>
+          ))}
+        </RowList>
+      </Section>
+
+      <Section title="AI-powered recommendations">
+        <RowList>
+          {recommendations.map((rec) => {
+            const Icon = rec.icon;
+            return (
+              <div key={rec.title} className="flex items-start gap-3 border-b border-line-soft py-3.5 last:border-b-0">
+                <Icon size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-ink-faint" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[15px] font-medium text-ink">{rec.title}</p>
+                    <Status tone={priorityTone(rec.priority)}>{rec.priority} priority</Status>
+                  </div>
+                  <p className="mt-1 text-[14px] text-ink-soft">{rec.description}</p>
+                </div>
+              </div>
+            );
+          })}
+        </RowList>
+      </Section>
+
+      <Section title="AI model information">
+        <RowList>
+          <Row label="Model version" value="FatiguePredict v2.1.0" />
+          <Row label="Training data" value="10,000+ pilot records" />
+          <Row label="Accuracy rate" value="89.3% prediction accuracy" />
+        </RowList>
+        <p className="mt-3 text-[14px] text-ink-soft">
+          Our AI analyzes your sleep patterns, duty schedule, recovery time, and circadian rhythm to provide personalized fatigue predictions. The model
+          continuously learns and improves with more data.
+        </p>
+      </Section>
+    </div>
+  );
 }

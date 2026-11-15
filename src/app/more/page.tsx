@@ -1,194 +1,154 @@
-'use client';
+import {
+  BedDouble,
+  Bell,
+  ChevronRight,
+  ClipboardCheck,
+  FileText,
+  Flower2,
+  Info,
+  LifeBuoy,
+  Lock,
+  MessageSquare,
+  MonitorSmartphone,
+  RefreshCw,
+  ScanHeart,
+  Settings,
+  Upload,
+  type LucideIcon,
+} from 'lucide-react';
+import { Button, LinkRow, PageHeader, Row, RowList, Section } from '@/components/ui';
 
-import Link from 'next/link';
+type MenuItem = { href: string; icon: LucideIcon; label: string; description: string; category: string };
 
 export default function MorePage() {
-    const menuItems = [
-        {
-            href: '/meditation',
-            icon: '🧘',
-            label: 'Meditation & Mindfulness',
-            description: 'Reduce stress with guided sessions',
-            color: 'from-purple-500 to-indigo-600',
-            category: 'Wellness'
-        },
-        {
-            href: '/sleep-tracking',
-            icon: '💤',
-            label: 'Sleep Tracking',
-            description: 'Monitor sleep quality with wearables',
-            color: 'from-indigo-500 to-blue-600',
-            category: 'Wellness'
-        },
-        {
-            href: '/fatigue-prediction',
-            icon: '🤖',
-            label: 'AI Fatigue Prediction',
-            description: 'Get AI-powered fatigue insights',
-            color: 'from-blue-500 to-cyan-600',
-            category: 'AI & Analytics'
-        },
-        {
-            href: '/compliance-report',
-            icon: '📋',
-            label: 'Compliance Report',
-            description: 'View flight duty and rest compliance',
-            color: 'from-cyan-500 to-teal-600',
-            category: 'Reports'
-        },
-        {
-            href: '/api-sync',
-            icon: '🔄',
-            label: 'API Sync',
-            description: 'Sync with external systems',
-            color: 'from-green-500 to-emerald-600',
-            category: 'Data'
-        },
-        {
-            href: '/device-sync',
-            icon: '📱',
-            label: 'Device Sync',
-            description: 'Connect wearable devices',
-            color: 'from-emerald-500 to-teal-600',
-            category: 'Data'
-        },
-        {
-            href: '/settings',
-            icon: '⚙️',
-            label: 'Settings',
-            description: 'App preferences and configuration',
-            color: 'from-gray-500 to-gray-600',
-            category: 'System'
-        },
-    ];
+  const menuItems: MenuItem[] = [
+    {
+      href: '/meditation',
+      icon: Flower2,
+      label: 'Meditation and mindfulness',
+      description: 'Reduce stress with guided sessions',
+      category: 'Wellness and analytics',
+    },
+    {
+      href: '/sleep-tracking',
+      icon: BedDouble,
+      label: 'Sleep tracking',
+      description: 'Monitor sleep quality with wearables',
+      category: 'Wellness and analytics',
+    },
+    {
+      href: '/fatigue-prediction',
+      icon: ScanHeart,
+      label: 'AI fatigue prediction',
+      description: 'Get AI-powered fatigue insights',
+      category: 'Wellness and analytics',
+    },
+    {
+      href: '/compliance-report',
+      icon: ClipboardCheck,
+      label: 'Compliance report',
+      description: 'View flight duty and rest compliance',
+      category: 'Reports, data and settings',
+    },
+    {
+      href: '/api-sync',
+      icon: RefreshCw,
+      label: 'API sync',
+      description: 'Sync with external systems',
+      category: 'Reports, data and settings',
+    },
+    {
+      href: '/device-sync',
+      icon: MonitorSmartphone,
+      label: 'Device sync',
+      description: 'Connect wearable devices',
+      category: 'Reports, data and settings',
+    },
+    {
+      href: '/settings',
+      icon: Settings,
+      label: 'Settings',
+      description: 'App preferences and configuration',
+      category: 'Reports, data and settings',
+    },
+  ];
 
-    // Group items by category
-    const groupedItems = menuItems.reduce((acc, item) => {
-        const category = item.category || 'Other';
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(item);
-        return acc;
-    }, {} as Record<string, typeof menuItems>);
+  // Group items by category
+  const groupedItems = menuItems.reduce(
+    (acc, item) => {
+      const category = item.category || 'Other';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(item);
+      return acc;
+    },
+    {} as Record<string, MenuItem[]>,
+  );
 
-    const infoItems = [
-        { icon: '📚', label: 'Help & Support', color: 'from-orange-500 to-orange-600' },
-        { icon: '📄', label: 'Privacy Policy', color: 'from-indigo-500 to-indigo-600' },
-        { icon: 'ℹ️', label: 'About PilotCare', color: 'from-teal-500 to-teal-600' },
-    ];
+  const infoItems: { icon: LucideIcon; label: string }[] = [
+    { icon: LifeBuoy, label: 'Help and support' },
+    { icon: FileText, label: 'Privacy policy' },
+    { icon: Info, label: 'About PilotCare' },
+  ];
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 pb-20">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-6 py-8 mb-6">
-                <h1 className="text-3xl font-bold mb-2">More</h1>
-                <p className="text-blue-100">Additional features and settings</p>
-            </div>
+  const quickActions: { icon: LucideIcon; label: string }[] = [
+    { icon: Bell, label: 'Notifications' },
+    { icon: Upload, label: 'Export data' },
+    { icon: Lock, label: 'Security' },
+    { icon: MessageSquare, label: 'Feedback' },
+  ];
 
-            {/* Main Menu Items - Grouped by Category */}
-            <div className="px-4 mb-6">
-                {Object.entries(groupedItems).map(([category, items]) => (
-                    <div key={category} className="mb-6">
-                        <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">{category}</h2>
-                        <div className="space-y-3">
-                            {items.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="block bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all active:scale-98 hover:shadow-lg"
-                                >
-                                    <div className="flex items-center p-4">
-                                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-2xl shadow-md mr-4`}>
-                                            {item.icon}
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-gray-900 mb-1">{item.label}</h3>
-                                            <p className="text-sm text-gray-600">{item.description}</p>
-                                        </div>
-                                        <div className="text-gray-400 text-xl">
-                                            →
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
+  return (
+    <div>
+      <PageHeader title="More" lead="Additional features and settings" />
 
-            {/* App Info Section */}
-            <div className="px-4 mb-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">Information</h2>
-                <div className="space-y-3">
-                    {infoItems.map((item, index) => (
-                        <button
-                            key={index}
-                            className="w-full bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all active:scale-98"
-                        >
-                            <div className="flex items-center p-4">
-                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-2xl shadow-md mr-4`}>
-                                    {item.icon}
-                                </div>
-                                <div className="flex-1 text-left">
-                                    <h3 className="font-bold text-gray-900">{item.label}</h3>
-                                </div>
-                                <div className="text-gray-400 text-xl">
-                                    →
-                                </div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            </div>
+      {/* The menu: every other screen, in two groups */}
+      {Object.entries(groupedItems).map(([category, items]) => (
+        <Section key={category} title={category}>
+          <RowList>
+            {items.map((item) => (
+              <LinkRow key={item.href} href={item.href} title={item.label} hint={item.description} icon={item.icon} />
+            ))}
+          </RowList>
+        </Section>
+      ))}
 
-            {/* App Version */}
-            <div className="px-4 mb-4">
-                <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <span className="text-4xl">✈️</span>
-                            <div>
-                                <h3 className="font-bold text-gray-900 text-lg">PilotCare</h3>
-                                <p className="text-sm text-gray-600">Health & Wellness</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="border-t border-gray-100 pt-4 space-y-2">
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Version</span>
-                            <span className="font-semibold text-gray-900">1.0.0</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Build</span>
-                            <span className="font-semibold text-gray-900">2025.11.06</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="px-4">
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-5">
-                    <h3 className="font-bold text-gray-900 mb-3">Quick Actions</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center transition-all active:scale-95">
-                            <div className="text-2xl mb-1">🔔</div>
-                            <div className="text-xs font-semibold text-gray-700">Notifications</div>
-                        </button>
-                        <button className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center transition-all active:scale-95">
-                            <div className="text-2xl mb-1">📤</div>
-                            <div className="text-xs font-semibold text-gray-700">Export Data</div>
-                        </button>
-                        <button className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center transition-all active:scale-95">
-                            <div className="text-2xl mb-1">🔒</div>
-                            <div className="text-xs font-semibold text-gray-700">Security</div>
-                        </button>
-                        <button className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center transition-all active:scale-95">
-                            <div className="text-2xl mb-1">💬</div>
-                            <div className="text-xs font-semibold text-gray-700">Feedback</div>
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <Section title="Quick actions">
+        <div className="grid grid-cols-2 gap-2">
+          {quickActions.map((action) => (
+            <Button key={action.label} variant="secondary" icon={action.icon} full>
+              {action.label}
+            </Button>
+          ))}
         </div>
-    );
+      </Section>
+
+      <Section title="Information">
+        <RowList>
+          {infoItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-3.5 border-b border-line-soft px-4 py-3.5 text-left last:border-b-0 hover:bg-panel"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-panel text-ink">
+                  <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1 text-[15px] font-medium text-ink">{item.label}</span>
+                <ChevronRight size={18} className="shrink-0 text-ink-faint" aria-hidden="true" />
+              </button>
+            );
+          })}
+        </RowList>
+      </Section>
+
+      <Section title="PilotCare" aside="Health and wellness">
+        <RowList>
+          <Row label="Version" value="1.0.0" />
+          <Row label="Build" value="2025.11.06" />
+        </RowList>
+      </Section>
+    </div>
+  );
 }

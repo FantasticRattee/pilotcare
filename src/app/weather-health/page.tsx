@@ -1,361 +1,383 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  Bug,
+  CloudLightning,
+  CloudRain,
+  CloudSun,
+  Droplets,
+  Dumbbell,
+  Eye,
+  Gauge,
+  GlassWater,
+  Haze,
+  Moon,
+  ShieldCheck,
+  Stethoscope,
+  Sun,
+  Sunrise,
+  Sunset,
+  Thermometer,
+  ThermometerSnowflake,
+  ThermometerSun,
+  Umbrella,
+  Utensils,
+  Wind,
+  type LucideIcon,
+} from 'lucide-react';
+import { Meter, Notice, PageHeader, Panel, Row, RowList, Section, Stat, StatGrid, Tape, type TapeSegment, type Tone } from '@/components/ui';
+
+/** Reads a clock time such as "06:45" as hours (6.75). Text that does not start with a clock time gives null. */
+function toHour(time: string): number | null {
+  const match = /^(\d{1,2}):(\d{2})/.exec(time.trim());
+  return match ? Number(match[1]) + Number(match[2]) / 60 : null;
+}
+
+/** A block of time for the 24-hour tape. A block that crosses midnight is split in two. */
+function timeBlock(from: string, to: string, tone: Tone, label: string): TapeSegment[] {
+  const start = toHour(from);
+  const end = toHour(to);
+  if (start === null || end === null) return [];
+  if (start <= end) return [{ from: start, to: end, tone, label }];
+  return [
+    { from: start, to: 24, tone, label },
+    { from: 0, to: end, tone, label },
+  ];
+}
+
+type Condition = 'sunny' | 'partlyCloudy' | 'rain' | 'thunderstorms';
+
+// Each sky condition has one icon and one name, so the forecast never depends on the picture alone.
+const conditions: Record<Condition, { label: string; icon: LucideIcon }> = {
+  sunny: { label: 'Sunny', icon: Sun },
+  partlyCloudy: { label: 'Partly cloudy', icon: CloudSun },
+  rain: { label: 'Rain', icon: CloudRain },
+  thunderstorms: { label: 'Thunderstorms', icon: CloudLightning },
+};
+
+type Advisory = { type: 'info' | 'warning' | 'success'; icon: LucideIcon; title: string; description: string };
+
+type CityWeather = {
+  name: string;
+  country: string;
+  timezone: string;
+  currentWeather: {
+    temp: number;
+    condition: string;
+    icon: LucideIcon;
+    humidity: number;
+    windSpeed: number;
+    windDirection: string;
+    visibility: number;
+    pressure: number;
+    uvIndex: number;
+    feelsLike: number;
+  };
+  forecast: { day: string; high: number; low: number; condition: Condition; precipitation: number }[];
+  healthAdvisories: Advisory[];
+  localInfo: { timeNow: string; sunrise: string; sunset: string; moonPhase: string };
+};
+
+type LayoverTip = { icon: LucideIcon; tip: string };
 
 export default function WeatherHealthPage() {
-    const [selectedLocation, setSelectedLocation] = useState('destination');
-    const [selectedCity, setSelectedCity] = useState('jfk');
+  const [selectedLocation, setSelectedLocation] = useState('destination');
+  const [selectedCity, setSelectedCity] = useState('jfk');
 
-    const locations = {
-        jfk: {
-            name: 'New York (JFK)',
-            country: 'United States',
-            timezone: 'EST (UTC-5)',
-            currentWeather: {
-                temp: 12,
-                condition: 'Partly Cloudy',
-                icon: '⛅',
-                humidity: 65,
-                windSpeed: 18,
-                windDirection: 'NW',
-                visibility: 10,
-                pressure: 1013,
-                uvIndex: 3,
-                feelsLike: 9
-            },
-            forecast: [
-                { day: 'Today', high: 14, low: 8, condition: '⛅', precipitation: 10 },
-                { day: 'Tomorrow', high: 16, low: 10, condition: '☀️', precipitation: 5 },
-                { day: 'Sat', high: 13, low: 7, condition: '🌧️', precipitation: 80 },
-                { day: 'Sun', high: 15, low: 9, condition: '⛅', precipitation: 20 },
-            ],
-            healthAdvisories: [
-                {
-                    type: 'info',
-                    icon: '😷',
-                    title: 'Flu Activity: Moderate',
-                    description: 'Increased flu cases reported. Consider extra hygiene precautions.'
-                },
-                {
-                    type: 'warning',
-                    icon: '🌡️',
-                    title: 'Cold Weather Alert',
-                    description: 'Temperatures dropping. Layer clothing appropriately.'
-                },
-                {
-                    type: 'success',
-                    icon: '🌤️',
-                    title: 'Air Quality: Good',
-                    description: 'Air quality is satisfactory for outdoor activities.'
-                },
-            ],
-            localInfo: {
-                timeNow: '14:32',
-                sunrise: '06:45',
-                sunset: '17:20',
-                moonPhase: '🌓'
-            }
+  const locations: Record<'jfk' | 'dxb' | 'sin', CityWeather> = {
+    jfk: {
+      name: 'New York (JFK)',
+      country: 'United States',
+      timezone: 'EST (UTC-5)',
+      currentWeather: {
+        temp: 12,
+        condition: 'Partly cloudy',
+        icon: CloudSun,
+        humidity: 65,
+        windSpeed: 18,
+        windDirection: 'NW',
+        visibility: 10,
+        pressure: 1013,
+        uvIndex: 3,
+        feelsLike: 9,
+      },
+      forecast: [
+        { day: 'Today', high: 14, low: 8, condition: 'partlyCloudy', precipitation: 10 },
+        { day: 'Tomorrow', high: 16, low: 10, condition: 'sunny', precipitation: 5 },
+        { day: 'Sat', high: 13, low: 7, condition: 'rain', precipitation: 80 },
+        { day: 'Sun', high: 15, low: 9, condition: 'partlyCloudy', precipitation: 20 },
+      ],
+      healthAdvisories: [
+        {
+          type: 'info',
+          icon: Stethoscope,
+          title: 'Flu activity: moderate',
+          description: 'Increased flu cases reported. Consider extra hygiene precautions.',
         },
-        dxb: {
-            name: 'Dubai (DXB)',
-            country: 'United Arab Emirates',
-            timezone: 'GST (UTC+4)',
-            currentWeather: {
-                temp: 32,
-                condition: 'Sunny',
-                icon: '☀️',
-                humidity: 45,
-                windSpeed: 12,
-                windDirection: 'NE',
-                visibility: 10,
-                pressure: 1010,
-                uvIndex: 9,
-                feelsLike: 35
-            },
-            forecast: [
-                { day: 'Today', high: 34, low: 24, condition: '☀️', precipitation: 0 },
-                { day: 'Tomorrow', high: 33, low: 25, condition: '☀️', precipitation: 0 },
-                { day: 'Sat', high: 35, low: 26, condition: '☀️', precipitation: 0 },
-                { day: 'Sun', high: 34, low: 25, condition: '⛅', precipitation: 5 },
-            ],
-            healthAdvisories: [
-                {
-                    type: 'warning',
-                    icon: '☀️',
-                    title: 'Extreme Heat Warning',
-                    description: 'Very high temperatures. Stay hydrated and limit sun exposure.'
-                },
-                {
-                    type: 'info',
-                    icon: '💧',
-                    title: 'Dehydration Risk: High',
-                    description: 'Drink plenty of water throughout the day.'
-                },
-                {
-                    type: 'success',
-                    icon: '😷',
-                    title: 'COVID-19: Low Risk',
-                    description: 'Current infection rates are low in this region.'
-                },
-            ],
-            localInfo: {
-                timeNow: '23:32',
-                sunrise: '06:30',
-                sunset: '17:45',
-                moonPhase: '🌓'
-            }
+        {
+          type: 'warning',
+          icon: ThermometerSnowflake,
+          title: 'Cold weather alert',
+          description: 'Temperatures dropping. Layer clothing appropriately.',
         },
-        sin: {
-            name: 'Singapore (SIN)',
-            country: 'Singapore',
-            timezone: 'SGT (UTC+8)',
-            currentWeather: {
-                temp: 28,
-                condition: 'Thunderstorms',
-                icon: '⛈️',
-                humidity: 85,
-                windSpeed: 15,
-                windDirection: 'SW',
-                visibility: 7,
-                pressure: 1008,
-                uvIndex: 6,
-                feelsLike: 32
-            },
-            forecast: [
-                { day: 'Today', high: 30, low: 25, condition: '⛈️', precipitation: 90 },
-                { day: 'Tomorrow', high: 31, low: 26, condition: '🌧️', precipitation: 70 },
-                { day: 'Sat', high: 29, low: 25, condition: '⛈️', precipitation: 85 },
-                { day: 'Sun', high: 30, low: 26, condition: '🌧️', precipitation: 60 },
-            ],
-            healthAdvisories: [
-                {
-                    type: 'warning',
-                    icon: '🦟',
-                    title: 'Dengue Alert: Elevated',
-                    description: 'Increased mosquito activity. Use insect repellent.'
-                },
-                {
-                    type: 'info',
-                    icon: '💨',
-                    title: 'Haze Advisory',
-                    description: 'Air quality may be affected. Monitor PSI levels.'
-                },
-                {
-                    type: 'info',
-                    icon: '🌧️',
-                    title: 'Monsoon Season',
-                    description: 'Frequent rain expected. Carry an umbrella.'
-                },
-            ],
-            localInfo: {
-                timeNow: '03:32',
-                sunrise: '07:00',
-                sunset: '19:10',
-                moonPhase: '🌓'
-            }
-        }
-    };
+        {
+          type: 'success',
+          icon: Wind,
+          title: 'Air quality: good',
+          description: 'Air quality is satisfactory for outdoor activities.',
+        },
+      ],
+      localInfo: {
+        timeNow: '14:32',
+        sunrise: '06:45',
+        sunset: '17:20',
+        moonPhase: 'Waning',
+      },
+    },
+    dxb: {
+      name: 'Dubai (DXB)',
+      country: 'United Arab Emirates',
+      timezone: 'GST (UTC+4)',
+      currentWeather: {
+        temp: 32,
+        condition: 'Sunny',
+        icon: Sun,
+        humidity: 45,
+        windSpeed: 12,
+        windDirection: 'NE',
+        visibility: 10,
+        pressure: 1010,
+        uvIndex: 9,
+        feelsLike: 35,
+      },
+      forecast: [
+        { day: 'Today', high: 34, low: 24, condition: 'sunny', precipitation: 0 },
+        { day: 'Tomorrow', high: 33, low: 25, condition: 'sunny', precipitation: 0 },
+        { day: 'Sat', high: 35, low: 26, condition: 'sunny', precipitation: 0 },
+        { day: 'Sun', high: 34, low: 25, condition: 'partlyCloudy', precipitation: 5 },
+      ],
+      healthAdvisories: [
+        {
+          type: 'warning',
+          icon: ThermometerSun,
+          title: 'Extreme heat warning',
+          description: 'Very high temperatures. Stay hydrated and limit sun exposure.',
+        },
+        {
+          type: 'info',
+          icon: Droplets,
+          title: 'Dehydration risk: high',
+          description: 'Drink plenty of water throughout the day.',
+        },
+        {
+          type: 'success',
+          icon: ShieldCheck,
+          title: 'COVID-19: low risk',
+          description: 'Current infection rates are low in this region.',
+        },
+      ],
+      localInfo: {
+        timeNow: '23:32',
+        sunrise: '06:30',
+        sunset: '17:45',
+        moonPhase: 'Waning',
+      },
+    },
+    sin: {
+      name: 'Singapore (SIN)',
+      country: 'Singapore',
+      timezone: 'SGT (UTC+8)',
+      currentWeather: {
+        temp: 28,
+        condition: 'Thunderstorms',
+        icon: CloudLightning,
+        humidity: 85,
+        windSpeed: 15,
+        windDirection: 'SW',
+        visibility: 7,
+        pressure: 1008,
+        uvIndex: 6,
+        feelsLike: 32,
+      },
+      forecast: [
+        { day: 'Today', high: 30, low: 25, condition: 'thunderstorms', precipitation: 90 },
+        { day: 'Tomorrow', high: 31, low: 26, condition: 'rain', precipitation: 70 },
+        { day: 'Sat', high: 29, low: 25, condition: 'thunderstorms', precipitation: 85 },
+        { day: 'Sun', high: 30, low: 26, condition: 'rain', precipitation: 60 },
+      ],
+      healthAdvisories: [
+        {
+          type: 'warning',
+          icon: Bug,
+          title: 'Dengue alert: elevated',
+          description: 'Increased mosquito activity. Use insect repellent.',
+        },
+        {
+          type: 'info',
+          icon: Haze,
+          title: 'Haze advisory',
+          description: 'Air quality may be affected. Monitor PSI levels.',
+        },
+        {
+          type: 'info',
+          icon: Umbrella,
+          title: 'Monsoon season',
+          description: 'Frequent rain expected. Carry an umbrella.',
+        },
+      ],
+      localInfo: {
+        timeNow: '03:32',
+        sunrise: '07:00',
+        sunset: '19:10',
+        moonPhase: 'Waning',
+      },
+    },
+  };
 
-    const currentLocation = locations[selectedCity as keyof typeof locations];
+  const layoverTips: LayoverTip[] = [
+    { icon: GlassWater, tip: 'Stay hydrated: drink water regularly' },
+    { icon: Thermometer, tip: 'Adjust room temperature for better sleep' },
+    { icon: Dumbbell, tip: 'Light exercise can help combat jet lag' },
+    { icon: Utensils, tip: 'Follow local meal times to adjust faster' },
+  ];
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 pb-20">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white px-6 py-8 mb-6">
-                <h1 className="text-3xl font-bold mb-2">🌍 Weather & Health</h1>
-                <p className="text-cyan-100">Local conditions and advisories</p>
+  const currentLocation = locations[selectedCity as keyof typeof locations];
+  const weather = currentLocation.currentWeather;
+  const WeatherIcon = weather.icon;
+
+  // Colour carries the status: amber for an advisory to act on, green for a normal reading, teal for information.
+  const advisoryTone: Record<Advisory['type'], Tone> = { warning: 'caution', success: 'ok', info: 'info' };
+
+  const uvLabel = weather.uvIndex >= 8 ? 'very high' : weather.uvIndex >= 6 ? 'high' : 'moderate';
+  const uvTone: Tone = weather.uvIndex >= 8 ? 'warning' : weather.uvIndex >= 6 ? 'caution' : 'neutral';
+
+  const daylight = timeBlock(currentLocation.localInfo.sunrise, currentLocation.localInfo.sunset, 'info', 'Daylight');
+
+  return (
+    <div>
+      <PageHeader title="Weather and health" lead="Local conditions and advisories" story={3} />
+
+      <Section title="Location">
+        <label htmlFor="location" className="mb-1.5 block text-[14px] text-ink-soft">
+          Select location
+        </label>
+        <select
+          id="location"
+          value={selectedCity}
+          onChange={(e) => setSelectedCity(e.target.value)}
+          className="w-full rounded-md border border-line bg-surface px-3 py-2.5 text-[15px] text-ink"
+        >
+          <option value="jfk">New York (JFK)</option>
+          <option value="dxb">Dubai (DXB)</option>
+          <option value="sin">Singapore (SIN)</option>
+        </select>
+
+        <div className="mt-3">
+          <Panel>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-display text-[22px] font-semibold leading-tight text-ink">{currentLocation.name}</p>
+                <p className="text-[14px] text-ink-soft">{currentLocation.country}</p>
+                <p className="tabular mt-1 text-[13px] text-ink-faint">{currentLocation.timezone}</p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="text-[13px] text-ink-soft">Local time</p>
+                <p className="tabular mt-1 font-display text-[28px] font-semibold leading-none text-ink">{currentLocation.localInfo.timeNow}</p>
+              </div>
             </div>
-
-            {/* Location Selector */}
-            <div className="px-4 mb-6">
-                <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Select Location
-                    </label>
-                    <select
-                        value={selectedCity}
-                        onChange={(e) => setSelectedCity(e.target.value)}
-                        className="w-full px-4 py-3 border text-black border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 font-medium"
-                    >
-                        <option value="jfk">🇺🇸 New York (JFK)</option>
-                        <option value="dxb">🇦🇪 Dubai (DXB)</option>
-                        <option value="sin">🇸🇬 Singapore (SIN)</option>
-                    </select>
-                </div>
-            </div>
-
-            {/* Current Location Info */}
-            <div className="px-4 mb-6">
-                <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
-                    <div className="flex items-center justify-between mb-2">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-900">{currentLocation.name}</h2>
-                            <p className="text-sm text-gray-600">{currentLocation.country}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-600">Local Time</p>
-                            <p className="text-xl font-bold text-blue-600">{currentLocation.localInfo.timeNow}</p>
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500">{currentLocation.timezone}</p>
-                </div>
-            </div>
-
-            {/* Current Weather */}
-            <div className="px-4 mb-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">Current Weather</h2>
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg text-white p-6 mb-4">
-                    <div className="flex items-start justify-between mb-4">
-                        <div>
-                            <div className="text-6xl mb-2">{currentLocation.currentWeather.icon}</div>
-                            <p className="text-xl font-semibold opacity-90">{currentLocation.currentWeather.condition}</p>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-5xl font-bold">{currentLocation.currentWeather.temp}°</div>
-                            <p className="text-sm opacity-80 mt-1">Feels like {currentLocation.currentWeather.feelsLike}°</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/20">
-                        <div className="text-center">
-                            <p className="text-xs opacity-80 mb-1">💧 Humidity</p>
-                            <p className="text-lg font-bold">{currentLocation.currentWeather.humidity}%</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs opacity-80 mb-1">💨 Wind</p>
-                            <p className="text-lg font-bold">{currentLocation.currentWeather.windSpeed} km/h</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs opacity-80 mb-1">👁️ Visibility</p>
-                            <p className="text-lg font-bold">{currentLocation.currentWeather.visibility} km</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Additional Weather Details */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4">
-                        <p className="text-xs text-gray-600 mb-1">☀️ UV Index</p>
-                        <p className="text-2xl font-bold text-gray-900">{currentLocation.currentWeather.uvIndex}</p>
-                        <p className="text-xs text-orange-600 mt-1">
-                            {currentLocation.currentWeather.uvIndex >= 8 ? 'Very High' : currentLocation.currentWeather.uvIndex >= 6 ? 'High' : 'Moderate'}
-                        </p>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4">
-                        <p className="text-xs text-gray-600 mb-1">🌡️ Pressure</p>
-                        <p className="text-2xl font-bold text-gray-900">{currentLocation.currentWeather.pressure}</p>
-                        <p className="text-xs text-gray-500 mt-1">hPa</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* 4-Day Forecast */}
-            <div className="px-4 mb-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">4-Day Forecast</h2>
-                <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4">
-                    <div className="space-y-3">
-                        {currentLocation.forecast.map((day, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                                <div className="flex items-center gap-3 flex-1">
-                                    <div className="text-3xl">{day.condition}</div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{day.day}</p>
-                                        <p className="text-xs text-gray-600">💧 {day.precipitation}%</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-lg font-bold text-gray-900">{day.high}°</p>
-                                    <p className="text-sm text-gray-500">{day.low}°</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Sun & Moon Info */}
-            <div className="px-4 mb-6">
-                <div className="bg-gradient-to-r from-orange-100 to-purple-100 rounded-2xl border border-orange-200 p-5">
-                    <h3 className="font-bold text-gray-900 mb-4">☀️ Sun & Moon</h3>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="text-center">
-                            <p className="text-2xl mb-1">🌅</p>
-                            <p className="text-xs text-gray-600 mb-1">Sunrise</p>
-                            <p className="font-bold text-gray-900">{currentLocation.localInfo.sunrise}</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl mb-1">🌇</p>
-                            <p className="text-xs text-gray-600 mb-1">Sunset</p>
-                            <p className="font-bold text-gray-900">{currentLocation.localInfo.sunset}</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl mb-1">{currentLocation.localInfo.moonPhase}</p>
-                            <p className="text-xs text-gray-600 mb-1">Moon</p>
-                            <p className="font-bold text-gray-900">Waning</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Health Advisories */}
-            <div className="px-4 mb-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">🏥 Health Advisories</h2>
-                <div className="space-y-3">
-                    {currentLocation.healthAdvisories.map((advisory, index) => (
-                        <div
-                            key={index}
-                            className={`rounded-2xl shadow-md border p-4 ${advisory.type === 'warning'
-                                    ? 'bg-orange-50 border-orange-200'
-                                    : advisory.type === 'success'
-                                        ? 'bg-green-50 border-green-200'
-                                        : 'bg-blue-50 border-blue-200'
-                                }`}
-                        >
-                            <div className="flex items-start gap-3">
-                                <div className="text-3xl">{advisory.icon}</div>
-                                <div className="flex-1">
-                                    <h3 className={`font-bold mb-1 ${advisory.type === 'warning'
-                                            ? 'text-orange-900'
-                                            : advisory.type === 'success'
-                                                ? 'text-green-900'
-                                                : 'text-blue-900'
-                                        }`}>
-                                        {advisory.title}
-                                    </h3>
-                                    <p className="text-sm text-gray-700">{advisory.description}</p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Layover Tips */}
-            <div className="px-4 mb-4">
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-200 p-5">
-                    <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                        <span>💡</span> Layover Tips
-                    </h3>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                        <li className="flex items-start gap-2">
-                            <span className="text-green-600 font-bold">✓</span>
-                            <span>Stay hydrated - drink water regularly</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="text-green-600 font-bold">✓</span>
-                            <span>Adjust room temperature for better sleep</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="text-green-600 font-bold">✓</span>
-                            <span>Light exercise can help combat jet lag</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="text-green-600 font-bold">✓</span>
-                            <span>Follow local meal times to adjust faster</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+          </Panel>
         </div>
-    );
+      </Section>
+
+      <Section title="Current weather">
+        <Panel padded={false}>
+          <div className="flex items-end justify-between gap-4 p-4">
+            <p className="tabular font-display text-[44px] font-semibold leading-none text-ink">{weather.temp}°</p>
+            <div className="text-right">
+              <p className="flex items-center justify-end gap-2 text-[15px] font-medium text-ink">
+                <WeatherIcon size={20} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+                {weather.condition}
+              </p>
+              <p className="tabular mt-0.5 text-[13px] text-ink-faint">Feels like {weather.feelsLike}°</p>
+            </div>
+          </div>
+          <div className="border-t border-line-soft p-4">
+            <Meter label="UV index" valueLabel={`${weather.uvIndex}, ${uvLabel}`} value={weather.uvIndex} max={11} tone={uvTone} />
+          </div>
+        </Panel>
+        <div className="mt-3">
+          <StatGrid>
+            <Stat label="Humidity" value={weather.humidity} unit="%" icon={Droplets} />
+            <Stat label="Wind" value={weather.windSpeed} unit={`km/h ${weather.windDirection}`} icon={Wind} />
+            <Stat label="Visibility" value={weather.visibility} unit="km" icon={Eye} />
+            <Stat label="Pressure" value={weather.pressure} unit="hPa" icon={Gauge} />
+          </StatGrid>
+        </div>
+      </Section>
+
+      <Section title="4-day forecast" aside="High and low">
+        <RowList>
+          {currentLocation.forecast.map((day) => {
+            const { label, icon: ConditionIcon } = conditions[day.condition];
+            return (
+              <div key={day.day} className="flex items-center justify-between gap-3 border-b border-line-soft py-3 last:border-b-0">
+                <div className="flex min-w-0 items-center gap-3">
+                  <ConditionIcon size={20} strokeWidth={1.75} className="shrink-0 text-ink" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-medium text-ink">{day.day}</p>
+                    <p className="tabular text-[13px] text-ink-faint">
+                      {label}, precipitation {day.precipitation}%
+                    </p>
+                  </div>
+                </div>
+                <p className="tabular shrink-0 text-right text-[15px]">
+                  <span className="font-medium text-ink">
+                    <span className="sr-only">High </span>
+                    {day.high}°
+                  </span>
+                  <span className="ml-3 text-ink-faint">
+                    <span className="sr-only">Low </span>
+                    {day.low}°
+                  </span>
+                </p>
+              </div>
+            );
+          })}
+        </RowList>
+      </Section>
+
+      <Section title="Sun and moon">
+        <Panel padded={false}>
+          <div className="p-4">
+            <Tape title={`Daylight, ${currentLocation.timezone}`} segments={daylight} now={toHour(currentLocation.localInfo.timeNow) ?? undefined} />
+            <p className="tabular mt-2 text-[12.5px] text-ink-faint">The line marks local time now, {currentLocation.localInfo.timeNow}.</p>
+          </div>
+          <div className="border-t border-line-soft px-4">
+            <Row icon={Sunrise} label="Sunrise" value={currentLocation.localInfo.sunrise} />
+            <Row icon={Sunset} label="Sunset" value={currentLocation.localInfo.sunset} />
+            <Row icon={Moon} label="Moon" value={currentLocation.localInfo.moonPhase} />
+          </div>
+        </Panel>
+      </Section>
+
+      <Section title="Health advisories">
+        <div className="grid gap-2.5">
+          {currentLocation.healthAdvisories.map((advisory) => (
+            <Notice key={advisory.title} tone={advisoryTone[advisory.type]} icon={advisory.icon} title={advisory.title}>
+              {advisory.description}
+            </Notice>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Layover tips">
+        <RowList>
+          {layoverTips.map((item) => (
+            <Row key={item.tip} icon={item.icon} label={item.tip} />
+          ))}
+        </RowList>
+      </Section>
+    </div>
+  );
 }

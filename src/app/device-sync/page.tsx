@@ -1,282 +1,191 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  CalendarDays,
+  ClipboardCheck,
+  ClipboardList,
+  HeartPulse,
+  LoaderCircle,
+  Moon,
+  RefreshCw,
+  Settings2,
+  Smartphone,
+  Tablet,
+  TabletSmartphone,
+  Watch,
+  type LucideIcon,
+} from 'lucide-react';
+import { Button, PageHeader, Panel, Row, RowList, Section, Status, Toggle } from '@/components/ui';
+
+type Device = { id: number; name: string; type: string; icon: LucideIcon; status: string; lastSync: string; dataSize: string };
+type SyncSettingKey = 'automatic' | 'wifiOnly' | 'background' | 'conflictResolution';
 
 export default function DeviceSync() {
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [lastSync, setLastSync] = useState('2025-10-18 18:45:00');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState('2025-10-18 18:45:00');
+  // The four switches start as the prototype showed them: three on, conflict resolution off.
+  const [syncSettings, setSyncSettings] = useState<Record<SyncSettingKey, boolean>>({
+    automatic: true,
+    wifiOnly: true,
+    background: true,
+    conflictResolution: false,
+  });
 
-    const devices = [
-        {
-            id: 1,
-            name: 'iPhone 15 Pro',
-            type: 'iOS',
-            icon: '📱',
-            status: 'Connected',
-            lastSync: '2 minutes ago',
-            dataSize: '45.2 MB',
-            color: 'bg-blue-500',
-        },
-        {
-            id: 2,
-            name: 'Samsung Galaxy S24',
-            type: 'Android',
-            icon: '📱',
-            status: 'Connected',
-            lastSync: '5 minutes ago',
-            dataSize: '42.8 MB',
-            color: 'bg-green-500',
-        },
-        {
-            id: 3,
-            name: 'Apple Watch Series 9',
-            type: 'Smart Watch',
-            icon: '⌚',
-            status: 'Connected',
-            lastSync: '1 minute ago',
-            dataSize: '12.5 MB',
-            color: 'bg-purple-500',
-        },
-        {
-            id: 4,
-            name: 'iPad Air',
-            type: 'iOS',
-            icon: '📲',
-            status: 'Offline',
-            lastSync: '2 hours ago',
-            dataSize: '38.1 MB',
-            color: 'bg-gray-400',
-        },
-    ];
+  const devices: Device[] = [
+    { id: 1, name: 'iPhone 15 Pro', type: 'iOS', icon: Smartphone, status: 'Connected', lastSync: '2 minutes ago', dataSize: '45.2 MB' },
+    { id: 2, name: 'Samsung Galaxy S24', type: 'Android', icon: Smartphone, status: 'Connected', lastSync: '5 minutes ago', dataSize: '42.8 MB' },
+    { id: 3, name: 'Apple Watch Series 9', type: 'Smart watch', icon: Watch, status: 'Connected', lastSync: '1 minute ago', dataSize: '12.5 MB' },
+    { id: 4, name: 'iPad Air', type: 'iOS', icon: Tablet, status: 'Offline', lastSync: '2 hours ago', dataSize: '38.1 MB' },
+  ];
 
-    const syncedData = [
-        { category: 'Sleep Data', records: 1245, lastUpdate: '2 min ago', synced: true },
-        { category: 'Flight Schedule', records: 87, lastUpdate: '5 min ago', synced: true },
-        { category: 'Health Metrics', records: 3421, lastUpdate: '1 min ago', synced: true },
-        { category: 'Duty Logs', records: 156, lastUpdate: '3 min ago', synced: true },
-        { category: 'Compliance Reports', records: 24, lastUpdate: '10 min ago', synced: true },
-    ];
+  const syncedData = [
+    { category: 'Sleep data', icon: Moon, records: 1245, lastUpdate: '2 min ago', synced: true },
+    { category: 'Flight schedule', icon: CalendarDays, records: 87, lastUpdate: '5 min ago', synced: true },
+    { category: 'Health metrics', icon: HeartPulse, records: 3421, lastUpdate: '1 min ago', synced: true },
+    { category: 'Duty logs', icon: ClipboardList, records: 156, lastUpdate: '3 min ago', synced: true },
+    { category: 'Compliance reports', icon: ClipboardCheck, records: 24, lastUpdate: '10 min ago', synced: true },
+  ];
 
-    const handleSyncAll = () => {
-        setIsSyncing(true);
-        setTimeout(() => {
-            setIsSyncing(false);
-            setLastSync(new Date().toLocaleString());
-        }, 2000);
-    };
+  const platforms = [
+    { name: 'iOS support', icon: Smartphone, description: 'Full support for iPhone and iPad devices with real-time sync' },
+    { name: 'Android support', icon: TabletSmartphone, description: 'Compatible with all Android devices running version 8.0+' },
+    { name: 'Smart watch', icon: Watch, description: 'Track health metrics directly from Apple Watch and Wear OS' },
+  ];
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Device Sync</h1>
-                <p className="text-gray-600">User Story #11: Sync data across iOS, Android, and Smart Watch devices</p>
-            </div>
+  const settingRows: { key: SyncSettingKey; label: string; hint: string }[] = [
+    { key: 'automatic', label: 'Automatic sync', hint: 'Sync data automatically when online' },
+    { key: 'wifiOnly', label: 'Sync on Wi-Fi only', hint: 'Save mobile data by syncing on Wi-Fi' },
+    { key: 'background', label: 'Background sync', hint: 'Keep data synced in background' },
+    { key: 'conflictResolution', label: 'Conflict resolution', hint: 'Automatically resolve data conflicts' },
+  ];
 
-            {/* Sync Status Banner */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg shadow-lg mb-8">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">Multi-Device Synchronization</h2>
-                        <p className="text-blue-100">
-                            All your health and flight data synced across all devices
-                        </p>
-                        <p className="text-sm text-blue-100 mt-2">Last sync: {lastSync}</p>
+  const handleSyncAll = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+      setLastSync(new Date().toLocaleString());
+    }, 2000);
+  };
+
+  const connectedCount = devices.filter((device) => device.status === 'Connected').length;
+
+  return (
+    <div>
+      <PageHeader title="Device sync" lead="Sync data across iOS, Android and smart watch devices" story={11} />
+
+      <Section title="Multi-device synchronization">
+        <Panel>
+          <p className="text-[14px] text-ink-soft">All your health and flight data synced across all devices</p>
+          <div className="mt-3" aria-live="polite">
+            <p className="text-[13px] text-ink-soft">Last sync</p>
+            <p className="tabular font-display text-[22px] font-semibold leading-tight text-ink">{lastSync}</p>
+          </div>
+          <div className="mt-4">
+            <Button onClick={handleSyncAll} disabled={isSyncing} icon={isSyncing ? undefined : RefreshCw} full>
+              {isSyncing ? (
+                <>
+                  <LoaderCircle size={17} strokeWidth={1.75} className="animate-spin" aria-hidden="true" />
+                  Syncing...
+                </>
+              ) : (
+                'Sync all devices'
+              )}
+            </Button>
+          </div>
+        </Panel>
+      </Section>
+
+      <Section
+        title="Connected devices"
+        aside={
+          <span className="tabular">
+            {connectedCount} of {devices.length} connected
+          </span>
+        }
+      >
+        <RowList>
+          {devices.map((device) => {
+            const Icon = device.icon;
+            const connected = device.status === 'Connected';
+            return (
+              <div key={device.id} className="border-b border-line-soft py-3.5 last:border-b-0">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-panel text-ink">
+                      <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[15px] font-medium text-ink">{device.name}</p>
+                      <p className="text-[13px] text-ink-faint">{device.type}</p>
                     </div>
-                    <button
-                        onClick={handleSyncAll}
-                        disabled={isSyncing}
-                        className={`px-6 py-3 rounded-lg font-medium transition-all ${isSyncing
-                            ? 'bg-white/30 cursor-not-allowed'
-                            : 'bg-white text-blue-600 hover:bg-blue-50'
-                            }`}
-                    >
-                        {isSyncing ? (
-                            <span className="flex items-center">
-                                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Syncing...
-                            </span>
-                        ) : (
-                            '🔄 Sync All Devices'
-                        )}
-                    </button>
-                </div>
-            </div>
-
-            {/* Connected Devices */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Connected Devices</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {devices.map((device) => (
-                        <div
-                            key={device.id}
-                            className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
-                        >
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center space-x-3">
-                                    <div className={`${device.color} text-white text-3xl p-3 rounded-lg`}>
-                                        {device.icon}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">{device.name}</h3>
-                                        <p className="text-sm text-gray-600">{device.type}</p>
-                                    </div>
-                                </div>
-                                <span
-                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${device.status === 'Connected'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                        }`}
-                                >
-                                    {device.status}
-                                </span>
-                            </div>
-
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Last Sync:</span>
-                                    <span className="font-medium text-gray-900">{device.lastSync}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Data Size:</span>
-                                    <span className="font-medium text-gray-900">{device.dataSize}</span>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 flex space-x-2">
-                                <button
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${device.status === 'Connected'
-                                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        }`}
-                                    disabled={device.status !== 'Connected'}
-                                >
-                                    Sync Now
-                                </button>
-                                <button className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">
-                                    Settings
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Synced Data Overview */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Synced Data Overview</h2>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-gray-200">
-                                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Data Category</th>
-                                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Records</th>
-                                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Last Update</th>
-                                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {syncedData.map((data, index) => (
-                                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                                    <td className="py-3 px-4 text-sm font-medium text-gray-900">{data.category}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-900">{data.records.toLocaleString()}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">{data.lastUpdate}</td>
-                                    <td className="py-3 px-4">
-                                        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            ✓ Synced
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Platform Support */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-center">
-                    <div className="text-5xl mb-3">📱</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">iOS Support</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Full support for iPhone and iPad devices with real-time sync
-                    </p>
-                    <div className="inline-flex px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                        ✓ Supported
-                    </div>
+                  </div>
+                  <Status tone={connected ? 'ok' : 'neutral'}>{device.status}</Status>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-center">
-                    <div className="text-5xl mb-3">🤖</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Android Support</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Compatible with all Android devices running version 8.0+
-                    </p>
-                    <div className="inline-flex px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                        ✓ Supported
-                    </div>
+                <dl className="mt-3 grid grid-cols-2 gap-3 pl-12">
+                  <div>
+                    <dt className="text-[12.5px] text-ink-faint">Last sync</dt>
+                    <dd className="tabular text-[14px] font-medium text-ink">{device.lastSync}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[12.5px] text-ink-faint">Data size</dt>
+                    <dd className="tabular text-[14px] font-medium text-ink">{device.dataSize}</dd>
+                  </div>
+                </dl>
+
+                <div className="mt-2.5 flex gap-6 pl-12">
+                  <Button variant="quiet" icon={RefreshCw} disabled={!connected} ariaLabel={`Sync ${device.name} now`}>
+                    Sync now
+                  </Button>
+                  <Button variant="quiet" icon={Settings2} ariaLabel={`${device.name} settings`}>
+                    Settings
+                  </Button>
                 </div>
+              </div>
+            );
+          })}
+        </RowList>
+      </Section>
 
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-center">
-                    <div className="text-5xl mb-3">⌚</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Watch</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Track health metrics directly from Apple Watch and Wear OS
-                    </p>
-                    <div className="inline-flex px-3 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
-                        ✓ Supported
-                    </div>
-                </div>
-            </div>
+      <Section title="Synced data overview">
+        <RowList>
+          {syncedData.map((data) => (
+            <Row
+              key={data.category}
+              icon={data.icon}
+              label={data.category}
+              hint={<span className="tabular">{`${data.records.toLocaleString('en-US')} records, updated ${data.lastUpdate}`}</span>}
+            >
+              <Status tone="ok">Synced</Status>
+            </Row>
+          ))}
+        </RowList>
+      </Section>
 
-            {/* Sync Settings */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Sync Settings</h2>
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div>
-                            <p className="font-medium text-gray-900">Automatic Sync</p>
-                            <p className="text-sm text-gray-600">Sync data automatically when online</p>
-                        </div>
-                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600">
-                            <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6" />
-                        </button>
-                    </div>
+      <Section title="Platform support">
+        <RowList>
+          {platforms.map((platform) => (
+            <Row key={platform.name} icon={platform.icon} label={platform.name} hint={platform.description}>
+              <Status tone="ok">Supported</Status>
+            </Row>
+          ))}
+        </RowList>
+      </Section>
 
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div>
-                            <p className="font-medium text-gray-900">Sync on WiFi Only</p>
-                            <p className="text-sm text-gray-600">Save mobile data by syncing on WiFi</p>
-                        </div>
-                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600">
-                            <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6" />
-                        </button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div>
-                            <p className="font-medium text-gray-900">Background Sync</p>
-                            <p className="text-sm text-gray-600">Keep data synced in background</p>
-                        </div>
-                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600">
-                            <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6" />
-                        </button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div>
-                            <p className="font-medium text-gray-900">Conflict Resolution</p>
-                            <p className="text-sm text-gray-600">Automatically resolve data conflicts</p>
-                        </div>
-                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                            <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+      <Section title="Sync settings">
+        <RowList>
+          {settingRows.map((setting) => (
+            <Row key={setting.key} label={setting.label} hint={setting.hint}>
+              <Toggle
+                label={setting.label}
+                checked={syncSettings[setting.key]}
+                onChange={(checked) => setSyncSettings((current) => ({ ...current, [setting.key]: checked }))}
+              />
+            </Row>
+          ))}
+        </RowList>
+      </Section>
+    </div>
+  );
 }
-

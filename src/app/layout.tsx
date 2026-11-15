@@ -1,16 +1,21 @@
 import Navigation from "@/components/Navigation";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Barlow, Barlow_Semi_Condensed } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Barlow comes from the lettering of road signs and instrument panels:
+// it stays readable at a glance, which is how a pilot reads this app.
+const body = Barlow({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// The narrower cut is used for headings and for numbers.
+const display = Barlow_Semi_Condensed({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -25,12 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
-      >
+      <body className={`${body.variable} ${display.variable} antialiased`}>
         <Navigation />
-        {/* Mobile App Container */}
-        <main className="max-w-md mx-auto min-h-screen bg-white pt-[52px] pb-20 shadow-2xl">
+        {/* Phone-sized app container */}
+        <main className="mx-auto min-h-screen max-w-md border-x border-line bg-surface pb-24 pt-[57px]">
           {children}
         </main>
       </body>

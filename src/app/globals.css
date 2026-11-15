@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+  PilotCare design tokens.
 
+  Colour follows the convention pilots already read on a flight display:
+  green = normal, amber = caution, red = warning, magenta = the active plan,
+  teal = information. Colour is used for status only; everything else is ink on white.
+*/
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0f2733;
+  --color-ink-soft: #3f5560;
+  --color-ink-faint: #6b808a;
+  --color-panel: #f1f5f6;
+  --color-surface: #ffffff;
+  --color-line: #d3dde1;
+  --color-line-soft: #e7edef;
+
+  --color-plan: #b3267e;
+  --color-plan-soft: #f9e8f2;
+  --color-ok: #1b7f55;
+  --color-ok-soft: #e3f3eb;
+  --color-caution: #a36700;
+  --color-caution-soft: #fbefd3;
+  --color-warning: #b93a27;
+  --color-warning-soft: #fbe5e0;
+  --color-info: #0d6f87;
+  --color-info-soft: #dff0f4;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-panel);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Numbers line up in columns everywhere: times, hours, scores. */
+.tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.005em;
+}
+
+/* Keyboard focus is always visible. */
+:where(a, button, input, select, [role="switch"], [role="tab"]):focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+input[type="date"],
+select {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
